@@ -1,12 +1,12 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { StreaksService } from './streaks.service';
+import { StreaksService, StreakSummary } from './streaks.service';
 
 @Controller('streaks')
 export class StreaksController {
   constructor(private readonly streakService: StreaksService) {}
 
   @Get(':id')
-  getStreakCase(@Param('id') caseId: number) {
+  getStreakCase(@Param('id') caseId: number): StreakSummary {
     return this.streakService.triggerStreakCase(caseId);
   }
 }

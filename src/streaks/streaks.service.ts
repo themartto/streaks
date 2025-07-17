@@ -1,7 +1,12 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { StreaksGateway } from './streaks.gateway';
+import { StreaksGateway, DayState, DayData } from './streaks.gateway';
 import { STREAKS_GATEWAY } from './streaks.gateway';
-import { DayState, DayData } from './file-streaks';
+
+export interface StreakSummary {
+  activitiesToday: number;
+  total: number;
+  days: DayData[];
+}
 
 @Injectable()
 export class StreaksService {
@@ -34,7 +39,7 @@ export class StreaksService {
     this.applySavedLogic(days, atRiskCount);
     this.finalizeStates(days);
 
-    return {
+    const summary: StreakSummary = {
       activitiesToday,
       total,
       days: days.map((d) => ({
@@ -43,6 +48,8 @@ export class StreaksService {
         state: d.state,
       })),
     };
+
+    return summary;
   }
 
   private buildDayWindow(
