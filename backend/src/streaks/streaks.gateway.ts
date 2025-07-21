@@ -10,5 +10,5 @@ export interface UserActivityData {
 }
 
 export interface StreaksGateway {
-  getCase(id: number): UserActivityData;
+  getExampleData(): UserActivityData;
 }

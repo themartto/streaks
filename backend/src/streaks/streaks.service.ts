@@ -28,7 +28,7 @@ export class StreaksService {
   ) {}
 
   triggerStreakCase(date: string) {
-    const caseData = this.gateway.getCase(1);
+    const caseData = this.gateway.getExampleData();
     return this.getLatestStreak(caseData.userData, date);
   }
 
@@ -51,42 +51,35 @@ export class StreaksService {
       }
     }
 
-    // Find consecutive completed days before today (going backwards)
-    const completedDaysBeforeToday: string[] = [];
-    let dayOffset = -1;
-    while (completedDaysBeforeToday.length < 6) {
-      // Max 6 days before today
-      const checkDate = this.addDays(today, dayOffset);
-      const dayData = dataByDate.get(checkDate);
-
-      if (dayData && dayData.activities >= 1) {
-        completedDaysBeforeToday.unshift(checkDate); // Add to beginning
-        dayOffset--;
-      } else {
-        break; // Stop at first non-completed day
-      }
-    }
-
-    // Calculate how many future days we need to show 7 total days
-    const pastDaysCount = completedDaysBeforeToday.length;
-    const futureDaysCount = 6 - pastDaysCount; // 7 total - 1 (today) - past days
-
-    // Build the 7-day window: past completed days + today + future days
+    // Build the 7-day window by finding the most recent activity and padding from there.
     const days: (DayData & { state: DayState })[] = [];
+    const windowSize = 7;
 
-    // Add past completed days
-    for (const date of completedDaysBeforeToday) {
+    // 1. Create a temporary window of today and the 6 days prior.
+    const tempHistoricalDays: (DayData & { state: DayState })[] = [];
+    for (let i = windowSize - 1; i >= 0; i--) {
+      const date = this.addDays(today, -i);
       const dayData = dataByDate.get(date) || { date, activities: 0 };
-      days.push({ ...dayData, state: DayState.COMPLETED });
+      tempHistoricalDays.push({ ...dayData, state: DayState.INCOMPLETE });
     }
 
-    // Add today
-    const todayData = dataByDate.get(today) || { date: today, activities: 0 };
-    days.push({ ...todayData, state: DayState.INCOMPLETE });
+    // 2. Find the index of the first day with activity in this temporary window.
+    const firstActiveIndex = tempHistoricalDays.findIndex(
+      (d) => d.activities >= 1,
+    );
 
-    // Add future days
-    for (let i = 1; i <= futureDaysCount; i++) {
-      const futureDate = this.addDays(today, i);
+    // 3. If activity exists, slice the array to remove leading empty days.
+    if (firstActiveIndex > -1) {
+      days.push(...tempHistoricalDays.slice(firstActiveIndex));
+    } else {
+      // If no activity in the last 7 days, show the full 7-day history.
+      days.push(...tempHistoricalDays);
+    }
+
+    // 4. Fill the rest of the window with future days.
+    let futureDayOffset = 1;
+    while (days.length < windowSize) {
+      const futureDate = this.addDays(today, futureDayOffset++);
       const dayData = dataByDate.get(futureDate) || {
         date: futureDate,
         activities: 0,
@@ -100,30 +93,33 @@ export class StreaksService {
     // Calculate states for all days
     for (let i = 0; i < days.length; i++) {
       const curr = days[i];
+      const isPastOrToday = i <= todayIdx;
 
-      // Mark completed days
-      if (curr.activities >= 1) {
-        curr.state = DayState.COMPLETED;
-        continue;
-      }
-
-      // For incomplete days, check if they're at risk or can be saved
-      if (i > todayIdx) {
-        // Future days remain incomplete
-        curr.state = DayState.INCOMPLETE;
-      } else {
-        // Today and any incomplete past days
+      if (isPastOrToday) {
         const daysSinceLastCompleted = this.getDaysSinceLastCompleted(days, i);
 
-        if (daysSinceLastCompleted === 1 || daysSinceLastCompleted === 2) {
-          curr.state = DayState.AT_RISK;
-
-          // Check if it can be saved
-          if (daysSinceLastCompleted === 1 && curr.activities >= 2) {
-            curr.state = DayState.SAVED;
-          } else if (daysSinceLastCompleted === 2 && curr.activities >= 3) {
-            curr.state = DayState.SAVED;
+        // Check for SAVED state first, as it's a specific type of completed day
+        if (daysSinceLastCompleted === 1 && curr.activities >= 2) {
+          curr.state = DayState.SAVED;
+        } else if (daysSinceLastCompleted === 2 && curr.activities >= 2) {
+          curr.state = DayState.SAVED;
+        } else if (daysSinceLastCompleted === 3 && curr.activities >= 3) {
+          curr.state = DayState.SAVED;
+        } else if (curr.activities >= 1) {
+          // If not saved, check if it's simply completed
+          curr.state = DayState.COMPLETED;
+        } else {
+          // It's an incomplete day in the past or today
+          if (daysSinceLastCompleted === 1 || daysSinceLastCompleted === 2) {
+            curr.state = DayState.AT_RISK;
+          } else {
+            curr.state = DayState.INCOMPLETE;
           }
+        }
+      } else {
+        // Future days are always INCOMPLETE and don't need risk/saved checks
+        if (curr.activities >= 1) {
+          curr.state = DayState.COMPLETED;
         } else {
           curr.state = DayState.INCOMPLETE;
         }
@@ -147,9 +143,9 @@ export class StreaksService {
     days: (DayData & { state: DayState })[],
     currentIdx: number,
   ): number {
-    // Look backwards from current index to find the last completed day
+    // Look backwards from current index to find the last completed day based on activities
     for (let i = currentIdx - 1; i >= 0; i--) {
-      if (days[i].state === DayState.COMPLETED) {
+      if (days[i].activities >= 1) {
         return currentIdx - i;
       }
     }
