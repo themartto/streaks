@@ -69,7 +69,6 @@ const StreakCard = () => {
   const isToday = (dateStr: string) => {
     const date = new Date(dateStr);
     const today = new Date();
-    console.log(date, today);
 
     return date.toDateString() === today.toDateString();
   };
