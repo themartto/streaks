@@ -6,7 +6,7 @@ export class StreaksController {
   constructor(private readonly streakService: StreaksService) {}
 
   @Get(':id')
-  getStreakCase(@Param('id') caseId: number): StreakSummary {
-    return this.streakService.triggerStreakCase(caseId);
+  getStreakCase(@Param('id') date: string): StreakSummary {
+    return this.streakService.triggerStreakCase(date);
   }
 }

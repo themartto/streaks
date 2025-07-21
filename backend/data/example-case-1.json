@@ -1,19 +1,14 @@
 {
   "userData": [
-    { "date": "2024-02-26", "activities": 3, "state": "COMPLETED" },
-    { "date": "2024-02-25", "activities": 0, "state": "SAVED" },
-    { "date": "2024-02-24", "activities": 0, "state": "SAVED" },
-    { "date": "2024-02-23", "activities": 1, "state": "COMPLETED" },
-    { "date": "2024-02-22", "activities": 0, "state": "INCOMPLETE" },
-    { "date": "2024-02-21", "activities": 0, "state": "INCOMPLETE" },
-    { "date": "2024-02-20", "activities": 0, "state": "INCOMPLETE" },
-    { "date": "2024-02-19", "activities": 0, "state": "INCOMPLETE" },
-    { "date": "2024-02-18", "activities": 0, "state": "INCOMPLETE" },
-    { "date": "2024-02-17", "activities": 0, "state": "INCOMPLETE" },
-    { "date": "2024-02-16", "activities": 0, "state": "INCOMPLETE" },
-    { "date": "2024-02-15", "activities": 0, "state": "INCOMPLETE" },
-    { "date": "2024-02-14", "activities": 0, "state": "INCOMPLETE" },
-    { "date": "2024-02-13", "activities": 0, "state": "INCOMPLETE" },
-    { "date": "2024-02-12", "activities": 0, "state": "INCOMPLETE" }
+    { "date": "2025-07-21", "activities": 3 },
+    { "date": "2025-07-20", "activities": 3 },
+    { "date": "2025-07-19", "activities": 3 },
+    { "date": "2025-07-18", "activities": 0 },
+    { "date": "2025-07-17", "activities": 0 },
+    { "date": "2025-07-16", "activities": 0 },
+    { "date": "2025-07-15", "activities": 0 },
+    { "date": "2025-07-14", "activities": 1 },
+    { "date": "2025-07-13", "activities": 1 },
+    { "date": "2025-07-12", "activities": 1 }
   ]
 }

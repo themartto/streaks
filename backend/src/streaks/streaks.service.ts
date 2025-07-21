@@ -1,11 +1,24 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { StreaksGateway, DayState, DayData } from './streaks.gateway';
+import { StreaksGateway, DayData } from './streaks.gateway';
 import { STREAKS_GATEWAY } from './streaks.gateway';
+
+export enum DayState {
+  COMPLETED = 'COMPLETED',
+  INCOMPLETE = 'INCOMPLETE',
+  AT_RISK = 'AT_RISK',
+  SAVED = 'SAVED',
+}
+
+export interface DaySummary {
+  date: string;
+  activities: number;
+  state: DayState;
+}
 
 export interface StreakSummary {
   activitiesToday: number;
   total: number;
-  days: DayData[];
+  days: DaySummary[];
 }
 
 @Injectable()
@@ -14,9 +27,9 @@ export class StreaksService {
     @Inject(STREAKS_GATEWAY) private readonly gateway: StreaksGateway,
   ) {}
 
-  triggerStreakCase(id: number) {
-    const caseData = this.gateway.getCase(id);
-    return this.getLatestStreak(caseData.userData, '2024-02-26');
+  triggerStreakCase(date: string) {
+    const caseData = this.gateway.getCase(1);
+    return this.getLatestStreak(caseData.userData, date);
   }
 
   // today format "2024-02-27"
@@ -24,20 +37,98 @@ export class StreaksService {
     userData: DayData[],
     today: string = new Date().toISOString().split('T')[0],
   ) {
-    // Sort userData by date descending (most recent first)
-    const sortedUserData = [...userData].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-    );
-
     // Create a map for quick lookup by date
     const dataByDate = new Map<string, DayData>();
-    sortedUserData.forEach((day) => dataByDate.set(day.date, day));
+    userData.forEach((day) => dataByDate.set(day.date, day));
 
     const activitiesToday = dataByDate.get(today)?.activities || 0;
-    const days = this.buildDayWindow(dataByDate, today, 7);
-    const { total, atRiskCount } = this.calculateInitialStates(days);
-    this.applySavedLogic(days, atRiskCount);
-    this.finalizeStates(days);
+
+    // Calculate total completed days across all userData
+    let total = 0;
+    for (const day of userData) {
+      if (day.activities >= 1) {
+        total++;
+      }
+    }
+
+    // Find consecutive completed days before today (going backwards)
+    const completedDaysBeforeToday: string[] = [];
+    let dayOffset = -1;
+    while (completedDaysBeforeToday.length < 6) {
+      // Max 6 days before today
+      const checkDate = this.addDays(today, dayOffset);
+      const dayData = dataByDate.get(checkDate);
+
+      if (dayData && dayData.activities >= 1) {
+        completedDaysBeforeToday.unshift(checkDate); // Add to beginning
+        dayOffset--;
+      } else {
+        break; // Stop at first non-completed day
+      }
+    }
+
+    // Calculate how many future days we need to show 7 total days
+    const pastDaysCount = completedDaysBeforeToday.length;
+    const futureDaysCount = 6 - pastDaysCount; // 7 total - 1 (today) - past days
+
+    // Build the 7-day window: past completed days + today + future days
+    const days: (DayData & { state: DayState })[] = [];
+
+    // Add past completed days
+    for (const date of completedDaysBeforeToday) {
+      const dayData = dataByDate.get(date) || { date, activities: 0 };
+      days.push({ ...dayData, state: DayState.COMPLETED });
+    }
+
+    // Add today
+    const todayData = dataByDate.get(today) || { date: today, activities: 0 };
+    days.push({ ...todayData, state: DayState.INCOMPLETE });
+
+    // Add future days
+    for (let i = 1; i <= futureDaysCount; i++) {
+      const futureDate = this.addDays(today, i);
+      const dayData = dataByDate.get(futureDate) || {
+        date: futureDate,
+        activities: 0,
+      };
+      days.push({ ...dayData, state: DayState.INCOMPLETE });
+    }
+
+    // Find the index of today in our days array
+    const todayIdx = days.findIndex((d) => d.date === today);
+
+    // Calculate states for all days
+    for (let i = 0; i < days.length; i++) {
+      const curr = days[i];
+
+      // Mark completed days
+      if (curr.activities >= 1) {
+        curr.state = DayState.COMPLETED;
+        continue;
+      }
+
+      // For incomplete days, check if they're at risk or can be saved
+      if (i > todayIdx) {
+        // Future days remain incomplete
+        curr.state = DayState.INCOMPLETE;
+      } else {
+        // Today and any incomplete past days
+        const daysSinceLastCompleted = this.getDaysSinceLastCompleted(days, i);
+
+        if (daysSinceLastCompleted === 1 || daysSinceLastCompleted === 2) {
+          curr.state = DayState.AT_RISK;
+
+          // Check if it can be saved
+          if (daysSinceLastCompleted === 1 && curr.activities >= 2) {
+            curr.state = DayState.SAVED;
+          } else if (daysSinceLastCompleted === 2 && curr.activities >= 3) {
+            curr.state = DayState.SAVED;
+          }
+        } else {
+          curr.state = DayState.INCOMPLETE;
+        }
+      }
+    }
 
     const summary: StreakSummary = {
       activitiesToday,
@@ -52,86 +143,20 @@ export class StreaksService {
     return summary;
   }
 
-  private buildDayWindow(
-    dataByDate: Map<string, DayData>,
-    today: string,
-    windowSize: number,
-  ): DayData[] {
-    const days: DayData[] = [];
-
-    // Find the latest streak window (filling with future dates if needed)
-    for (let i = 0; i < windowSize; i++) {
-      const targetDate = this.addDays(today, i);
-      const day = dataByDate.get(targetDate) || {
-        date: targetDate,
-        activities: 0,
-        state: DayState.INCOMPLETE,
-      };
-      days.push({ ...day });
-    }
-
-    return days;
-  }
-
-  private calculateInitialStates(days: DayData[]): {
-    total: number;
-    atRiskCount: number;
-  } {
-    let atRiskCount = 0;
-    let lastCompletedIdx = -1;
-    let total = 0;
-
-    // Calculate states for each day in the window
-    for (let i = 0; i < days.length; i++) {
-      const curr = days[i];
-      // Completed: at least 1 activity
-      if (curr.activities >= 1) {
-        curr.state = DayState.COMPLETED;
-        lastCompletedIdx = i;
-        atRiskCount = 0;
-        total++;
-      } else if (lastCompletedIdx !== -1) {
-        // At risk: first or second day after a completed day
-        const daysSinceCompleted = i - lastCompletedIdx;
-        if (daysSinceCompleted === 1 || daysSinceCompleted === 2) {
-          curr.state = DayState.AT_RISK;
-          atRiskCount = daysSinceCompleted;
-        }
+  private getDaysSinceLastCompleted(
+    days: (DayData & { state: DayState })[],
+    currentIdx: number,
+  ): number {
+    // Look backwards from current index to find the last completed day
+    for (let i = currentIdx - 1; i >= 0; i--) {
+      if (days[i].state === DayState.COMPLETED) {
+        return currentIdx - i;
       }
     }
-
-    return { total, atRiskCount };
+    return -1; // No completed day found
   }
 
-  private applySavedLogic(days: DayData[], atRiskCount: number): void {
-    for (let i = 0; i < days.length; i++) {
-      const curr = days[i];
-      if (curr.state === DayState.AT_RISK) {
-        const next = days[i - 1];
-        if (atRiskCount === 1 && next && next.activities >= 2) {
-          curr.state = DayState.SAVED;
-        } else if (atRiskCount === 2 && next && next.activities >= 3) {
-          curr.state = DayState.SAVED;
-        }
-      }
-    }
-  }
-
-  private finalizeStates(days: DayData[]): void {
-    for (let i = 0; i < days.length; i++) {
-      const curr = days[i];
-      // Incomplete: current day and not enough activities, or 0 activities
-      if (
-        curr.state !== DayState.COMPLETED &&
-        curr.state !== DayState.SAVED &&
-        (curr.activities === 0 || (i === 0 && curr.activities < 2))
-      ) {
-        curr.state = DayState.INCOMPLETE;
-      }
-    }
-  }
-
-  addDays(dateStr: string, days: number): string {
+  private addDays(dateStr: string, days: number): string {
     const date = new Date(dateStr);
     date.setDate(date.getDate() + days);
     return date.toISOString().slice(0, 10);
