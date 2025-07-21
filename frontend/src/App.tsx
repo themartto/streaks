@@ -1,4 +1,3 @@
-import React from "react";
 import StreakCard from "./components/StreakCard";
 import { DayState, useStreaks } from "./hooks/useStreaks";
 
@@ -12,7 +11,6 @@ function App() {
     // Count consecutive completed days from the end
     let streak = 0;
     for (let i = streakData.days.length - 1; i >= 0; i--) {
-      console.log(streakData.days[i].state);
       if (streakData.days[i].state !== DayState.INCOMPLETE) {
         streak++;
       }

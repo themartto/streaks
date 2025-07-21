@@ -8,7 +8,6 @@ A React application for visualizing daily activity streaks with a clean, modern 
 - **Weekly View**: Displays the last 7 days with visual indicators for completed/incomplete activities
 - **Real-time Data**: Fetches streak data from API with loading and error states
 - **Responsive Design**: Works on desktop and mobile devices
-- **Mock API**: Includes development mock service for testing
 
 ## Getting Started
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { useStreaks, DayData } from "../hooks/useStreaks";
+import { useStreaks } from "../hooks/useStreaks";
 
 interface DayProps {
   day: string;
@@ -59,16 +59,20 @@ const Day: React.FC<DayProps> = ({ day, active, isCurrent }) => {
 };
 
 const StreakCard = () => {
-  const { streakData, loading, error } = useStreaks();
+  const todayDate =
+    window.location.pathname.split("/").pop() ??
+    new Date().toISOString().split("T")[0];
+
+  const { streakData, loading, error } = useStreaks(todayDate);
 
   const getDayName = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase();
   };
 
-  const isToday = (dateStr: string) => {
+  const isToday = (dateStr: string, todayDate: string) => {
     const date = new Date(dateStr);
-    const today = new Date();
+    const today = new Date(todayDate);
 
     return date.toDateString() === today.toDateString();
   };
@@ -112,7 +116,7 @@ const StreakCard = () => {
               key={index}
               day={getDayName(dayData.date)}
               active={dayData.state === "COMPLETED"}
-              isCurrent={isToday(dayData.date)}
+              isCurrent={isToday(dayData.date, todayDate)}
               date={dayData.date}
             />
           ))}

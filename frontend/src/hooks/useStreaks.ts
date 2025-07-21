@@ -18,7 +18,7 @@ export interface StreakSummary {
   days: DayData[];
 }
 
-export const useStreaks = () => {
+export const useStreaks = (date?: string) => {
   const [streakData, setStreakData] = useState<StreakSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +30,7 @@ export const useStreaks = () => {
         setError(null);
 
         const response = await fetch(
-          "http://localhost:3000/streaks/2025-07-18",
+          `${import.meta.env.VITE_API_URL}/streaks/${date || new Date().toISOString().split("T")[0]}`,
         );
         if (!response.ok) {
           throw new Error(`Failed to fetch streaks: ${response.statusText}`);
@@ -47,7 +47,7 @@ export const useStreaks = () => {
     };
 
     fetchStreaks();
-  }, []);
+  }, [date]);
 
   return {
     streakData,
