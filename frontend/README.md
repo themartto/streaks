@@ -1,6 +1,6 @@
 # Streak Visualization Frontend
 
-A React application for visualizing daily activity streaks with a clean, modern interface.
+A React application for visualizing streaks
 
 ## Features
 
@@ -9,21 +9,14 @@ A React application for visualizing daily activity streaks with a clean, modern 
 - **Real-time Data**: Fetches streak data from API with loading and error states
 - **Responsive Design**: Works on desktop and mobile devices
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v16 or higher)
-- npm or yarn
-
 ### Installation
 
 ```bash
 # Install dependencies
-npm install
+yarn install
 
 # Start development server
-npm run dev
+yarn dev
 ```
 
 The application will be available at `http://localhost:5173`
@@ -51,31 +44,6 @@ The application expects streak data in the following format:
     }
   ]
 }
-```
-
-### API Integration
-
-#### Development Mode
-
-The application uses a mock API service for development. The mock service generates realistic data with current dates.
-
-#### Production Mode
-
-To connect to your actual API:
-
-1. Open `src/hooks/useStreaks.ts`
-2. Replace the mock service call with your actual API endpoint:
-
-```typescript
-// Replace this line:
-const data = await mockApiService.getStreaks();
-
-// With your actual API call:
-const response = await fetch('/api/streaks');
-if (!response.ok) {
-  throw new Error(`Failed to fetch streaks: ${response.statusText}`);
-}
-const data: StreakData = await response.json();
 ```
 
 ### Components
@@ -108,25 +76,6 @@ The application uses Tailwind CSS classes. To customize colors:
 - Background: `[#F7F5F0]`
 - Text: `[#1F2937]`
 
-#### Styling
-
-All styles are defined using Tailwind CSS classes. You can modify the appearance by updating the className props in the components.
-
-## File Structure
-
-```
-src/
-├── components/
-│   └── StreakCard.tsx          # Main streak visualization component
-├── hooks/
-│   └── useStreaks.ts           # Custom hook for data fetching
-├── services/
-│   └── mockApi.ts              # Mock API service for development
-├── App.tsx                     # Main application component
-├── main.tsx                    # Application entry point
-└── index.css                   # Global styles
-```
-
 ## Development
 
 ### Available Scripts
@@ -135,14 +84,6 @@ src/
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
-
-### Mock Data
-
-The mock API service generates data with:
-- Current dates (last 7 days)
-- Random completion patterns
-- Realistic activity counts
-- Proper TypeScript interfaces
 
 ## Deployment
 
@@ -155,14 +96,13 @@ The mock API service generates data with:
 
 3. Update the API endpoint in `useStreaks.ts` to point to your production API
 
-## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+## Dev notes:
 
-## License
+The example backend data can be tested with the following urls:
 
-This project is licensed under the MIT License.
+`http://localhost:5173/2024-02-07`
+
+`http://localhost:5173/2024-02-17`
+
+`http://localhost:5173/2024-02-27`

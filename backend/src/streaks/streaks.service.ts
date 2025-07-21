@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { StreaksGateway, DayData } from './streaks.gateway';
-import { STREAKS_GATEWAY } from './streaks.gateway';
+import { UserDataGateway, DayData } from './user-data.gateway';
+import { USER_DATA_GATEWAY } from './user-data.gateway';
 
 export enum DayState {
   COMPLETED = 'COMPLETED',
@@ -24,7 +24,7 @@ export interface StreakSummary {
 @Injectable()
 export class StreaksService {
   constructor(
-    @Inject(STREAKS_GATEWAY) private readonly gateway: StreaksGateway,
+    @Inject(USER_DATA_GATEWAY) private readonly gateway: UserDataGateway,
   ) {}
 
   triggerStreakCase(date: string) {

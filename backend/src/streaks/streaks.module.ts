@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
 import { StreaksController } from './streaks.controller';
 import { StreaksService } from './streaks.service';
-import { STREAKS_GATEWAY } from './streaks.gateway';
-import { FileStreaks } from './file-streaks';
+import { USER_DATA_GATEWAY } from './user-data.gateway';
+import { StreaksFromFile } from './streaks-from-file';
 
 @Module({
   controllers: [StreaksController],
   providers: [
     StreaksService,
     {
-      provide: STREAKS_GATEWAY,
-      useClass: FileStreaks,
+      provide: USER_DATA_GATEWAY,
+      useClass: StreaksFromFile,
     },
   ],
 })

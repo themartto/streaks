@@ -1,4 +1,4 @@
-export const STREAKS_GATEWAY = 'STREAKS_GATEWAY';
+export const USER_DATA_GATEWAY = 'USER_DATA_GATEWAY';
 
 export interface DayData {
   date: string;
@@ -9,6 +9,6 @@ export interface UserActivityData {
   userData: DayData[];
 }
 
-export interface StreaksGateway {
+export interface UserDataGateway {
   getExampleData(): UserActivityData;
 }

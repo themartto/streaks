@@ -1,7 +1,7 @@
-import { UserActivityData, StreaksGateway } from './streaks.gateway';
+import { UserActivityData, UserDataGateway } from './user-data.gateway';
 import * as exampleData from '../../data/example-data.json';
 
-export class FileStreaks implements StreaksGateway {
+export class StreaksFromFile implements UserDataGateway {
   getExampleData(): UserActivityData {
     return exampleData as UserActivityData;
   }

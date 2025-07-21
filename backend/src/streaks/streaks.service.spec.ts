@@ -11,7 +11,7 @@ describe('StreaksService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StreaksService,
-        { provide: 'STREAKS_GATEWAY', useValue: mockGateway },
+        { provide: 'USER_DATA_GATEWAY', useValue: mockGateway },
       ],
     }).compile();
 
@@ -38,7 +38,7 @@ describe('StreaksService', () => {
       expect(result.activitiesToday).toBe(0);
       expect(result.total).toBe(0);
       expect(result.days).toHaveLength(7);
-      result.days.forEach(day => {
+      result.days.forEach((day) => {
         expect(day.state).toBe('INCOMPLETE');
       });
     });
@@ -58,7 +58,7 @@ describe('StreaksService', () => {
       expect(result.activitiesToday).toBe(1);
       expect(result.total).toBe(7);
       expect(result.days).toHaveLength(7);
-      result.days.forEach(day => {
+      result.days.forEach((day) => {
         expect(day.state).toBe('COMPLETED');
       });
     });
@@ -75,9 +75,15 @@ describe('StreaksService', () => {
       ];
       const today = '2024-06-07';
       const result = service.getLatestStreak(userData, today);
-      expect(result.days.find(d => d.date === '2024-06-02')?.state).toBe('COMPLETED');
-      expect(result.days.find(d => d.date === '2024-06-05')?.state).toBe('SAVED');
-      expect(result.days.find(d => d.date === '2024-06-07')?.state).toBe('SAVED');
+      expect(result.days.find((d) => d.date === '2024-06-02')?.state).toBe(
+        'COMPLETED',
+      );
+      expect(result.days.find((d) => d.date === '2024-06-05')?.state).toBe(
+        'SAVED',
+      );
+      expect(result.days.find((d) => d.date === '2024-06-07')?.state).toBe(
+        'SAVED',
+      );
     });
 
     it('should mark days as AT_RISK when appropriate', () => {
@@ -92,10 +98,18 @@ describe('StreaksService', () => {
       ];
       const today = '2024-06-07';
       const result = service.getLatestStreak(userData, today);
-      expect(result.days.find(d => d.date === '2024-06-02')?.state).toBe('AT_RISK');
-      expect(result.days.find(d => d.date === '2024-06-03')?.state).toBe('AT_RISK');
-      expect(result.days.find(d => d.date === '2024-06-06')?.state).toBe('AT_RISK');
-      expect(result.days.find(d => d.date === '2024-06-07')?.state).toBe('AT_RISK');
+      expect(result.days.find((d) => d.date === '2024-06-02')?.state).toBe(
+        'AT_RISK',
+      );
+      expect(result.days.find((d) => d.date === '2024-06-03')?.state).toBe(
+        'AT_RISK',
+      );
+      expect(result.days.find((d) => d.date === '2024-06-06')?.state).toBe(
+        'AT_RISK',
+      );
+      expect(result.days.find((d) => d.date === '2024-06-07')?.state).toBe(
+        'AT_RISK',
+      );
     });
 
     it('should handle a mix of completed, at risk, saved, and incomplete days', () => {
@@ -112,10 +126,18 @@ describe('StreaksService', () => {
       const result = service.getLatestStreak(userData, today);
       expect(result.days).toHaveLength(7);
       // Spot check a few states
-      expect(result.days.find(d => d.date === '2024-06-01')?.state).toBe('COMPLETED');
-      expect(result.days.find(d => d.date === '2024-06-03')?.state).toBe('SAVED');
-      expect(result.days.find(d => d.date === '2024-06-02')?.state).toBe('AT_RISK');
-      expect(result.days.find(d => d.date === '2024-06-05')?.state).toBe('AT_RISK');
+      expect(result.days.find((d) => d.date === '2024-06-01')?.state).toBe(
+        'COMPLETED',
+      );
+      expect(result.days.find((d) => d.date === '2024-06-03')?.state).toBe(
+        'SAVED',
+      );
+      expect(result.days.find((d) => d.date === '2024-06-02')?.state).toBe(
+        'AT_RISK',
+      );
+      expect(result.days.find((d) => d.date === '2024-06-05')?.state).toBe(
+        'AT_RISK',
+      );
     });
   });
 });

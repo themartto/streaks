@@ -23,7 +23,7 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+[Nest](https://github.com/nestjs/nest) docs
 
 ## Project setup
 
@@ -34,65 +34,35 @@ $ yarn install
 ## Compile and run the project
 
 ```bash
-# development
-$ yarn run start
-
 # watch mode
-$ yarn run start:dev
+$ yarn start:dev
 
-# production mode
-$ yarn run start:prod
+# build for production
+$ yarn build
+
+# start in production
+$ yarn start:prod
+
 ```
 
 ## Run tests
 
 ```bash
 # unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+$ yarn test
 ```
 
-## Deployment
+## Dev notes:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Streaks is separate nestjs module that can be plugged in any nestjs application
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+The [UserDataGateway](./src/streaks/user-data.gateway.ts) is an abstraction over the days data API
 
-```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
-```
+The logic in getLatestStreak will work with any date, if no date is provided we default to today
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+The day state calculations follow the rules:
 
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+-  day it’s `COMPLETED` if at least 1 activity for that day exists
+-  day st’s `AT_RISK` if a streak has existed previously and current day is first or second after that completed day
+- day it’s `SAVED` if a streak has existed previously and after one day of inactivity (at risk) we have a day with min. 2 activities, or after two days of inactivity (at risk) we have a day with min. 3 activities.
+- day it’s `INCOMPLETE` if it has 0 activities.
