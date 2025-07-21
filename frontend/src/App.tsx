@@ -2,10 +2,13 @@ import StreakCard from "./components/StreakCard";
 import { DayState, useStreaks } from "./hooks/useStreaks";
 
 function App() {
-  const { streakData, loading } = useStreaks();
+  const todayDate =
+    window.location.pathname.split("/").pop() ??
+    new Date().toISOString().split("T")[0];
+
+  const { streakData, loading } = useStreaks(todayDate);
 
   const getStreakCount = () => {
-    console.log(streakData);
     if (!streakData) return 0;
 
     // Count consecutive completed days from the end

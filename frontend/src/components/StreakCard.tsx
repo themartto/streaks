@@ -115,7 +115,9 @@ const StreakCard = () => {
             <Day
               key={index}
               day={getDayName(dayData.date)}
-              active={dayData.state === "COMPLETED" || dayData.state === "SAVED"}
+              active={
+                dayData.state === "COMPLETED" || dayData.state === "SAVED"
+              }
               isCurrent={isToday(dayData.date, todayDate)}
               date={dayData.date}
             />
